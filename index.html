@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="logo-container">
+            <svg viewBox="0 0 120 120">
+                <defs><linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2e86c1"/><stop offset="100%" style="stop-color:#1a5276"/></linearGradient></defs>
+                <circle cx="60" cy="60" r="52" fill="none" stroke="url(#lg)" stroke-width="2" opacity="0.25"/>
+                <circle cx="60" cy="60" r="40" fill="none" stroke="url(#lg)" stroke-width="1.5" opacity="0.15"/>
+                <circle cx="60" cy="60" r="28" fill="none" stroke="url(#lg)" stroke-width="2" opacity="0.35"/>
+                <path d="M46 38 L74 38 L78 43 L78 56 L60 68 L42 56 L42 43 Z" fill="none" stroke="url(#lg)" stroke-width="2"/>
+                <path d="M51 46 L69 46 L71 49 L71 54 L60 62 L49 54 L49 49 Z" fill="url(#lg)" opacity="0.5"/>
+                <circle cx="60" cy="28" r="3" fill="url(#lg)" opacity="0.4"/>
+                <circle cx="60" cy="92" r="3" fill="url(#lg)" opacity="0.4"/>
+                <circle cx="28" cy="60" r="2.5" fill="url(#lg)" opacity="0.3"/>
+                <circle cx="92" cy="60" r="2.5" fill="url(#lg)" opacity="0.3"/>
+            </svg>
+            <h1>TERA SHIELD</h1>
+        </div>
+
+        <form class="form-section active" id="loginForm">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="loginUsername" placeholder="Enter username" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter password">
+            </div>
+            <div id="loginMsg" class="msg"></div>
+            <button type="submit" class="btn-submit">LOGIN</button>
+        </form>
+
+        <form class="form-section" id="registerForm">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="regUsername" placeholder="Choose username" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="regPassword" placeholder="Choose password">
+            </div>
+            <div class="input-group">
+                <label>Confirm Password</label>
+                <input type="password" id="regPasswordConfirm" placeholder="Confirm password">
+            </div>
+            <div class="input-group">
+                <label>Referral Code <span style="color:#ff4757">*</span></label>
+                <input type="text" id="regReferral" placeholder="Enter referral code" autocomplete="off">
+            </div>
+            <label class="remember-me">
+                <input type="checkbox" id="rememberMe">
+                <span>Remember me</span>
+            </label>
+            <div id="regMsg" class="msg"></div>
+            <button type="submit" class="btn-submit">REGISTER</button>
+        </form>
+
+        <button class="btn-register-toggle" id="toggleReg">Need an account? Register</button>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <h3>Select Role</h3>
+            <div class="role-select-btns">
+                <button class="role-select-btn reseller-btn" data-role="Reseller">RESELLER</button>
+                <button class="role-select-btn admin-btn" data-role="Admin">ADMIN</button>
+                <button class="role-select-btn owner-btn" data-role="Owner">OWNER</button>
+            </div>
+            <div class="generated-code-display" id="generatedCodeDisplay">
+                <div class="code-text" id="generatedCodeText"></div>
+                <div class="code-role" id="generatedCodeRole"></div>
+            </div>
+            <button class="modal-close" id="modalClose">Close</button>
+        </div>
+    </div>
+
+    <script src="js/database.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

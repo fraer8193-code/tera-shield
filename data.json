@@ -1,0 +1,29 @@
+{
+  "keys": [],
+  "referrals": [
+    {
+      "code": "REF-INIT-OWNER",
+      "role": "Owner",
+      "used": false
+    },
+    {
+      "code": "REF-INIT-ADMIN",
+      "role": "Admin",
+      "used": false
+    },
+    {
+      "code": "REF-INIT-RESELLER",
+      "role": "Reseller",
+      "used": false
+    }
+  ],
+  "users": [
+    {
+      "balance": 9999849,
+      "password": "admin",
+      "role": "Owner",
+      "uid": "UID-ADMIN001",
+      "username": "admin"
+    }
+  ]
+}
