@@ -1,13 +1,78 @@
-const DB_KEY = 'database';
-const API_URL = 'https://tera-shield.fraer8193.workers.dev';
+const SUPABASE_URL = 'https://your-project.supabase.co';
+const SUPABASE_KEY = 'your-anon-key';
 
-async function loadDB() {
-  const data = await TERASHIELD_KV.get(DB_KEY, 'json');
-  return data || { keys: [], users: [], referrals: [] };
+async function supabaseRequest(path, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, opts);
+  const text = await resp.text();
+  try { return JSON.parse(text); } catch { return text; }
 }
 
-async function saveDB(data) {
-  await TERASHIELD_KV.put(DB_KEY, JSON.stringify(data));
+async function getAll(table) {
+  return await supabaseRequest(table);
+}
+
+async function insertRow(table, data) {
+  return await supabaseRequest(table, 'POST', data);
+}
+
+async function updateRow(table, data, filters) {
+  const params = filters.map(([k, v]) => `${k}=eq.${v}`).join('&');
+  return await supabaseRequest(`${table}?${params}`, 'PATCH', data);
+}
+
+async function upsertRow(table, data) {
+  return await supabaseRequest(table, 'POST', data);
+}
+
+async function deleteRow(table, filters) {
+  const params = filters.map(([k, v]) => `${k}=eq.${v}`).join('&');
+  return await supabaseRequest(`${table}?${params}`, 'DELETE');
+}
+
+async function loadDB() {
+  const [users, keys, referrals] = await Promise.all([
+    getAll('users'),
+    getAll('keys'),
+    getAll('referrals')
+  ]);
+  return {
+    users: Array.isArray(users) ? users : [],
+    keys: Array.isArray(keys) ? keys : [],
+    referrals: Array.isArray(referrals) ? referrals : []
+  };
+}
+
+async function saveUser(user, isNew = false) {
+  if (isNew) {
+    await supabaseRequest('users', 'POST', user);
+  } else {
+    await updateRow('users', user, [['username', user.username]]);
+  }
+}
+
+async function saveKey(key, isNew = false) {
+  if (isNew) {
+    await supabaseRequest('keys', 'POST', key);
+  } else {
+    await updateRow('keys', key, [['id', key.id]]);
+  }
+}
+
+async function saveReferral(ref, isNew = false) {
+  if (isNew) {
+    await supabaseRequest('referrals', 'POST', ref);
+  } else {
+    await updateRow('referrals', ref, [['code', ref.code]]);
+  }
 }
 
 function generateUID() {
@@ -37,7 +102,12 @@ function getBalanceForRole(role) {
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' }
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, apikey, Authorization'
+    }
   });
 }
 
@@ -48,17 +118,21 @@ async function handleRequest(request) {
 
   if (method === 'OPTIONS') {
     return new Response('', {
-      headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' }
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, apikey, Authorization'
+      }
     });
   }
 
   try {
-    const body = method === 'POST' ? await request.json() : {};
+    const body = method === 'POST' || method === 'PATCH' ? await request.json() : {};
 
     if (path === 'login' && method === 'POST') {
       const { username, password } = body;
-      const data = await loadDB();
-      const user = data.users.find(u => u.username === username);
+      const users = await getAll('users?username=eq.' + username);
+      const user = users[0];
       if (!user) return jsonResponse({ success: false, error: 'Account does not exist' }, 404);
       if (user.banned) return jsonResponse({ success: false, error: 'Account does not exist' }, 403);
       if (user.password !== password) return jsonResponse({ success: false, error: 'Invalid credentials' }, 401);
@@ -67,11 +141,12 @@ async function handleRequest(request) {
 
     if (path === 'register' && method === 'POST') {
       const { username, password, referralCode } = body;
-      const data = await loadDB();
-      if (data.users.some(u => u.username === username)) {
+      const allUsers = await getAll('users?username=eq.' + username);
+      if (allUsers.length > 0) {
         return jsonResponse({ success: false, error: 'Username already exists' }, 409);
       }
-      const referral = data.referrals.find(r => r.code === referralCode?.toUpperCase());
+      const refs = await getAll('referrals?code=eq.' + referralCode?.toUpperCase());
+      const referral = refs[0];
       if (!referral) return jsonResponse({ success: false, error: 'Invalid referral code' }, 400);
       if (referral.used) return jsonResponse({ success: false, error: 'Referral code already used' }, 400);
 
@@ -80,77 +155,58 @@ async function handleRequest(request) {
         username,
         password,
         role: referral.role,
-        referralCode: referralCode.toUpperCase(),
+        referral_code: referralCode.toUpperCase(),
         balance: getBalanceForRole(referral.role),
-        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
         banned: false
       };
-      data.users.push(user);
-      referral.used = true;
-      referral.usedBy = username;
-      referral.usedAt = new Date().toISOString();
-      await saveDB(data);
+      await insertRow('users', user);
+      await updateRow('referrals', { used: true, used_by: username, used_at: new Date().toISOString() }, [['code', referral.code]]);
       return jsonResponse({ success: true, user });
     }
 
     if (path === 'referrals' && method === 'POST') {
       const { code, role, ownerUid } = body;
-      const data = await loadDB();
-      if (!data.referrals) data.referrals = [];
-      data.referrals.push({ code, role, ownerUid, used: false, createdAt: new Date().toISOString() });
-      await saveDB(data);
+      await insertRow('referrals', { code, role, owner_uid: ownerUid, used: false, created_at: new Date().toISOString() });
       return jsonResponse({ success: true });
     }
 
     if (path === 'referrals' && method === 'GET') {
-      const data = await loadDB();
-      return jsonResponse(data.referrals || []);
+      const data = await getAll('referrals');
+      return jsonResponse(Array.isArray(data) ? data : []);
     }
 
     if (path === 'keys' && method === 'POST') {
-      const keyData = body;
-      const data = await loadDB();
-      if (!data.keys) data.keys = [];
-      data.keys.push(keyData);
-      await saveDB(data);
-      return jsonResponse({ success: true, key: keyData });
+      await insertRow('keys', body);
+      return jsonResponse({ success: true, key: body });
     }
 
     if (path === 'keys/delete' && method === 'POST') {
       const { id } = body;
-      const data = await loadDB();
-      if (data.keys) data.keys = data.keys.filter(k => k.id !== id);
-      await saveDB(data);
+      await deleteRow('keys', [['id', id]]);
       return jsonResponse({ success: true });
     }
 
     if (path === 'keys/update' && method === 'POST') {
       const req = body;
-      const data = await loadDB();
-      if (data.keys) {
-        const key = data.keys.find(k => k.id === req.id);
-        if (key) Object.assign(key, req);
-      }
-      await saveDB(data);
+      await updateRow('keys', req, [['id', req.id]]);
       return jsonResponse({ success: true });
     }
 
     if (path === 'activate' && method === 'POST') {
       const { key: keyValue, hwid, username } = body;
-      const data = await loadDB();
-      if (!data.keys) return jsonResponse({ success: false, error: 'Server error' }, 500);
-
-      const key = data.keys.find(k => k.value === keyValue);
+      const keys = await getAll('keys?value=eq.' + keyValue);
+      const key = keys[0];
       if (!key) return jsonResponse({ success: false, error: 'Key not found' }, 404);
       if (key.frozen) return jsonResponse({ success: false, error: 'Key is frozen' }, 403);
 
-      const expiresAt = key.expiresAt ? new Date(key.expiresAt) : null;
+      const expiresAt = key.expires_at ? new Date(key.expires_at) : null;
       if (expiresAt && expiresAt < new Date()) {
         return jsonResponse({ success: false, error: 'Key has expired' }, 403);
       }
 
-      const current = key.currentActivations || 0;
-      const maxActs = key.maxActivations || 1;
+      const current = key.current_activations || 0;
+      const maxActs = key.max_activations || 1;
       if (current >= maxActs) {
         return jsonResponse({ success: false, error: `Max activations reached (${maxActs})` }, 403);
       }
@@ -163,21 +219,22 @@ async function handleRequest(request) {
       const expires = new Date();
       expires.setDate(expires.getDate() + duration);
 
-      key.hwid = hwid;
-      key.active = true;
-      key.activatedBy = username || 'Unknown';
-      key.activatedAt = new Date().toISOString();
-      key.expiresAt = expires.toISOString();
-      key.currentActivations = current + 1;
-
-      await saveDB(data);
-      return jsonResponse({ success: true, key: key.name, duration, expiresAt: key.expiresAt });
+      const updateData = {
+        hwid,
+        active: true,
+        activated_by: username || 'Unknown',
+        activated_at: new Date().toISOString(),
+        expires_at: expires.toISOString(),
+        current_activations: current + 1
+      };
+      await updateRow('keys', updateData, [['id', key.id]]);
+      return jsonResponse({ success: true, key: key.name, duration, expiresAt: expires.toISOString() });
     }
 
     if (path.startsWith('activate/key=') && method === 'GET') {
       const keyValue = path.replace('activate/key=', '');
-      const data = await loadDB();
-      const key = data.keys?.find(k => k.value === keyValue);
+      const keys = await getAll('keys?value=eq.' + keyValue);
+      const key = keys[0];
       if (!key) return jsonResponse({ exists: false });
       return jsonResponse({
         exists: true,
@@ -188,29 +245,56 @@ async function handleRequest(request) {
     }
 
     if (path === 'db' && method === 'GET') {
-      const data = await loadDB();
-      return jsonResponse(data);
+      const [users, keys, referrals] = await Promise.all([
+        getAll('users'),
+        getAll('keys'),
+        getAll('referrals')
+      ]);
+      return jsonResponse({
+        users: Array.isArray(users) ? users : [],
+        keys: Array.isArray(keys) ? keys : [],
+        referrals: Array.isArray(referrals) ? referrals : []
+      });
     }
 
     if (path === 'db' && method === 'POST') {
-      await saveDB(body);
+      const { users, keys, referrals } = body;
+      if (users) for (const u of users) await upsertRow('users', u);
+      if (keys) for (const k of keys) await upsertRow('keys', k);
+      if (referrals) for (const r of referrals) await upsertRow('referrals', r);
       return jsonResponse({ success: true });
     }
 
+    if (path === 'init' && method === 'POST') {
+      const existingUsers = await getAll('users');
+      if (existingUsers.length > 0) {
+        return jsonResponse({ success: true, message: 'Already initialized' });
+      }
+      await insertRow('users', {
+        uid: 'UID-ADMIN001',
+        username: 'admin',
+        password: 'admin',
+        role: 'Owner',
+        balance: 9999999,
+        created_at: new Date().toISOString()
+      });
+      await insertRow('referrals', { code: 'REF-INIT-OWNER', role: 'Owner', used: false, created_at: new Date().toISOString() });
+      await insertRow('referrals', { code: 'REF-INIT-ADMIN', role: 'Admin', used: false, created_at: new Date().toISOString() });
+      await insertRow('referrals', { code: 'REF-INIT-RESELLER', role: 'Reseller', used: false, created_at: new Date().toISOString() });
+      return jsonResponse({ success: true, message: 'Database initialized' });
+    }
+
     if (path === 'check-expiry' && method === 'GET') {
-      const data = await loadDB();
       const now = new Date();
+      const keys = await getAll('keys?active=eq.true');
       const expiredIds = [];
-      if (data.keys) {
-        for (const k of data.keys) {
-          const et = k.expiresAt ? new Date(k.expiresAt) : null;
-          if (et && k.active && et < now) {
-            expiredIds.push(k.id);
-            k.active = false;
-          }
+      for (const k of keys) {
+        const et = k.expires_at ? new Date(k.expires_at) : null;
+        if (et && et < now) {
+          expiredIds.push(k.id);
+          await updateRow('keys', { active: false }, [['id', k.id]]);
         }
       }
-      if (expiredIds.length) await saveDB(data);
       return jsonResponse({ expired: expiredIds });
     }
 
