@@ -1,0 +1,69 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-wrapper {
+    width: 400px;
+    border-radius: 20px;
+    padding: 48px 36px;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+}
+
+.logo-container { text-align: center; margin-bottom: 32px; }
+.logo-container svg { width: 100px; height: 100px; }
+.logo-container h1 { font-size: 20px; font-weight: 700; margin-top: 14px; letter-spacing: 2px; color: #1a5276; }
+
+.form-section { display: none; }
+.form-section.active { display: block; }
+
+.input-group { margin-bottom: 14px; }
+.input-group label { display: block; font-size: 11px; font-weight: 600; margin-bottom: 5px; letter-spacing: 0.8px; text-transform: uppercase; color: rgba(0,0,0,0.35); }
+.input-group input { width: 100%; padding: 12px 15px; border-radius: 9px; font-size: 14px; outline: none; background: #f5f7fa; border: 1px solid rgba(0,0,0,0.1); color: #333; }
+.input-group input:focus { border-color: #1a5276; }
+.input-group input::placeholder { opacity: 0.35; }
+
+.remember-me { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; cursor: pointer; }
+.remember-me input[type="checkbox"] { appearance: none; width: 15px; height: 15px; border: 2px solid rgba(26, 82, 118, 0.25); border-radius: 4px; cursor: pointer; position: relative; }
+.remember-me input[type="checkbox"]:checked { background: #2e86c1; border-color: #2e86c1; }
+.remember-me input[type="checkbox"]:checked::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 10px; font-weight: bold; }
+.remember-me span { font-size: 12px; color: rgba(0,0,0,0.4); }
+
+.btn-submit { width: 100%; padding: 13px; border: none; border-radius: 9px; font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: 1px; transition: all 0.25s ease; margin-top: 6px; background: linear-gradient(135deg, #1a5276, #2e86c1); color: white; }
+.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(26, 82, 118, 0.25); }
+
+.btn-register-toggle { width: 100%; padding: 12px; border: 1px solid rgba(0,0,0,0.1); border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; letter-spacing: 0.5px; margin-top: 14px; transition: all 0.25s ease; background: transparent; color: rgba(0,0,0,0.4); }
+.btn-register-toggle:hover { color: #1a5276; border-color: rgba(26, 82, 118, 0.3); background: rgba(26, 82, 118, 0.04); }
+
+.msg { text-align: center; font-size: 12px; min-height: 18px; margin-top: 10px; border-radius: 6px; padding: 7px; }
+.msg.error { background: rgba(255, 71, 87, 0.06); color: #ff4757; }
+.msg.success { background: rgba(46, 213, 113, 0.06); color: #2ed573; }
+
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
+
+.modal-box { width: 340px; border-radius: 16px; padding: 32px 28px; text-align: center; background: #fff; border: 1px solid rgba(0,0,0,0.1); }
+.modal-box h3 { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #222; }
+
+.role-select-btns { display: flex; flex-direction: column; gap: 10px; }
+.role-select-btn { padding: 14px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: 1px; transition: all 0.2s ease; }
+.role-select-btn:hover { transform: translateY(-2px); }
+.role-select-btn.reseller-btn { background: rgba(46, 213, 113, 0.1); color: #27ae60; border: 1px solid rgba(46, 213, 113, 0.3); }
+.role-select-btn.admin-btn { background: rgba(0, 180, 255, 0.1); color: #2e86c1; border: 1px solid rgba(0, 180, 255, 0.3); }
+.role-select-btn.owner-btn { background: rgba(255, 215, 0, 0.1); color: #d4a800; border: 1px solid rgba(255, 215, 0, 0.3); }
+
+.modal-close { margin-top: 16px; padding: 10px; border: none; border-radius: 8px; background: transparent; cursor: pointer; font-size: 12px; font-weight: 600; color: rgba(0,0,0,0.3); }
+.modal-close:hover { opacity: 0.7; }
+
+.generated-code-display { display: none; margin-top: 16px; padding: 16px; border-radius: 10px; background: #f5f7fa; border: 1px solid rgba(0,0,0,0.08); }
+.generated-code-display .code-text { font-family: 'Consolas', monospace; font-size: 20px; font-weight: 700; margin-bottom: 4px; color: #1a5276; }
+.generated-code-display .code-role { font-size: 12px; color: rgba(0,0,0,0.35); }

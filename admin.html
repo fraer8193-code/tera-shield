@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="theme-toggle-admin" id="themeToggle" title="Toggle theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+    </div>
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <svg viewBox="0 0 120 120">
+                <defs><linearGradient id="lg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2e86c1"/><stop offset="100%" style="stop-color:#1a5276"/></linearGradient></defs>
+                <circle cx="60" cy="60" r="52" fill="none" stroke="url(#lg2)" stroke-width="2" opacity="0.25"/>
+                <circle cx="60" cy="60" r="28" fill="none" stroke="url(#lg2)" stroke-width="2" opacity="0.35"/>
+                <path d="M46 38 L74 38 L78 43 L78 56 L60 68 L42 56 L42 43 Z" fill="none" stroke="url(#lg2)" stroke-width="2"/>
+                <path d="M51 46 L69 46 L71 49 L71 54 L60 62 L49 54 L49 49 Z" fill="url(#lg2)" opacity="0.5"/>
+            </svg>
+            <h2>TERA SHIELD</h2>
+        </div>
+        <div class="user-info">
+            <div class="user-role-badge" id="userRoleBadge"></div>
+            <div class="user-balance">$<span id="userBalance">0</span></div>
+            <div class="user-uid" id="userUid"></div>
+        </div>
+        <div class="nav-items">
+            <div class="nav-item active" data-section="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" data-section="keys">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                <span>Keys</span>
+            </div>
+            <div class="nav-item" data-section="activekeys">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <span>Active Keys</span>
+            </div>
+            <div class="nav-item" data-section="settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Settings</span>
+            </div>
+            <div class="nav-item" data-section="referrals">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                <span>Referrals</span>
+            </div>
+            <div class="nav-item admin-only" data-section="admin">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Admin</span>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <button class="logout-btn" id="logoutBtn">LOGOUT</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <section class="panel-section active" id="dashboard">
+            <h2 class="section-title">Dashboard</h2>
+            <div class="dashboard-grid">
+                <div class="stat-card"><div class="stat-value" id="statTotalKeys">0</div><div class="stat-label">Total Keys</div></div>
+                <div class="stat-card"><div class="stat-value" id="statActiveKeys">0</div><div class="stat-label">Active Keys</div></div>
+                <div class="stat-card"><div class="stat-value" id="statMyKeys">0</div><div class="stat-label">My Keys</div></div>
+                <div class="stat-card"><div class="stat-value" id="statReferrals">0</div><div class="stat-label">Referrals</div></div>
+            </div>
+        </section>
+
+        <section class="panel-section" id="keys">
+            <h2 class="section-title">Keys Management</h2>
+            <div class="widget">
+                <div class="widget-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                    Generate Key
+                </div>
+                <div class="controls-row">
+                    <button class="btn-primary" id="generateKeyBtn">Generate Key</button>
+                    <select id="keyDuration"><option value="7">7 Days</option><option value="15">15 Days</option><option value="30">30 Days</option></select>
+                    <input type="number" id="keyActivations" placeholder="Activations" min="1" max="999" style="width:100px;">
+                    <label class="checkbox-wrapper"><input type="checkbox" id="customKeyCheck">Custom key</label>
+                    <input type="text" class="custom-key-input" id="customKeyValue" placeholder="Key name...">
+                </div>
+                <div id="keyMsg" class="msg"></div>
+            </div>
+            <div class="widget">
+                <div class="widget-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    Your Keys
+                </div>
+                <div id="keysList"></div>
+            </div>
+        </section>
+
+        <section class="panel-section" id="activekeys">
+            <h2 class="section-title">Active Keys</h2>
+            <div class="widget">
+                <div class="widget-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Currently Active
+                </div>
+                <div id="activeKeysList"></div>
+            </div>
+        </section>
+
+        <section class="panel-section" id="settings">
+            <h2 class="section-title">Settings</h2>
+            <div class="widget">
+                <div class="widget-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Security
+                </div>
+                <div class="setting-item">
+                    <div><div class="setting-label">Notifications</div><div class="setting-desc">Enable system notifications</div></div>
+                    <div class="toggle active" id="notificationsToggle" onclick="toggleNotifications(this)"></div>
+                </div>
+                <div class="setting-item">
+                    <div><div class="setting-label">Auto-logout</div><div class="setting-desc">Automatically logout after 30 minutes</div></div>
+                    <div class="toggle" onclick="this.classList.toggle('active')"></div>
+                </div>
+            </div>
+            <div class="widget">
+                <div class="widget-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    Account Info
+                </div>
+                <div class="setting-item"><div><div class="setting-label">Username</div><div class="setting-desc" id="settingsUsername"></div></div></div>
+                <div class="setting-item"><div><div class="setting-label">Role</div><div class="setting-desc" id="settingsRole"></div></div></div>
+                <div class="setting-item"><div><div class="setting-label">UID</div><div class="setting-desc" id="settingsUid"></div></div></div>
+            </div>
+        </section>
+
+        <section class="panel-section" id="referrals">
+            <h2 class="section-title">Referrals</h2>
+            <div class="widget">
+                <div class="widget-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                    Generate Referral Code
+                </div>
+                <button class="btn-primary" id="openRefModalBtn">+ Generate Code</button>
+                <div id="referralDisplay" style="display:none;">
+                    <div class="referral-code-display">
+                        <span class="referral-code" id="lastGeneratedCode"></span>
+                        <button class="btn-copy" id="copyLastRefBtn">Copy</button>
+                    </div>
+                </div>
+            </div>
+            <div class="widget">
+                <div class="widget-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    Your Referral Codes
+                </div>
+                <div id="referralsList"></div>
+            </div>
+        </section>
+
+        <section class="panel-section" id="admin">
+            <h2 class="section-title">Admin Panel</h2>
+            <div class="widget">
+                <div class="widget-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    All Users
+                </div>
+                <div id="usersList"></div>
+                <div class="user-detail-panel" id="userDetailPanel"></div>
+            </div>
+        </section>
+    </main>
+
+    <div class="modal-overlay" id="refModal">
+        <div class="ref-modal-box">
+            <h3>Select Role</h3>
+            <div class="ref-role-btns">
+                <button class="ref-role-btn" data-role="Reseller">RESELLER</button>
+                <button class="ref-role-btn" data-role="Admin">ADMIN</button>
+                <button class="ref-role-btn" data-role="Owner">OWNER</button>
+            </div>
+            <div class="ref-result" id="refResult">
+                <div class="ref-result-code" id="refResultCode"></div>
+                <div class="ref-result-role" id="refResultRole"></div>
+            </div>
+            <button class="ref-modal-close" id="closeRefModal">Close</button>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="input-modal-overlay" id="inputModal">
+        <div class="input-modal-box">
+            <h4 id="inputModalTitle">Enter value</h4>
+            <input type="number" id="inputModalValue" min="1">
+            <div class="input-modal-actions">
+                <button class="btn-confirm" id="inputModalConfirm">Confirm</button>
+                <button class="btn-cancel" id="inputModalCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/database.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
