@@ -1,5 +1,5 @@
 if (typeof API_URL === 'undefined') {
-    const API_URL = 'http://localhost:5000/api';
+    const API_URL = (window.API_BASE || '') + '/api';
 }
 if (typeof Auth === 'undefined') {
     const Auth = {

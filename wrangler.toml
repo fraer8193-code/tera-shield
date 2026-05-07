@@ -1,0 +1,6 @@
+name = "tera-shield"
+compatibility_date = "2026-05-07"
+main = "worker.js"
+
+[vars]
+API_URL = "https://tera-shield.fraer8193.workers.dev"
