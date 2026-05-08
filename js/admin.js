@@ -1,10 +1,10 @@
 if (typeof API_URL === 'undefined') {
-    const API_URL = (window.API_BASE || '') + '/api';
+    const API_URL = (window.API_BASE || '') + '/api.php';
 }
 if (typeof Auth === 'undefined') {
     const Auth = {
         api(method, endpoint, body) {
-            return fetch(`${API_URL}${endpoint}`, {
+            return fetch(`${API_URL}?action=${endpoint}`, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
                 body: body ? JSON.stringify(body) : undefined
@@ -48,7 +48,7 @@ function toggleNotifications(el) {
 
 async function api(method, endpoint, body) {
     try {
-        const resp = await fetch(`${API_URL}${endpoint}`, {
+        const resp = await fetch(`${API_URL}?action=${endpoint}`, {
             method,
             headers: { 'Content-Type': 'application/json' },
             body: body ? JSON.stringify(body) : undefined
@@ -61,7 +61,7 @@ async function api(method, endpoint, body) {
 }
 
 async function refreshUser() {
-    const data = await api('GET', '/db');
+    const data = await api('GET', 'db');
     const user = data && data.users ? data.users.find(u => u.username === currentUser.username) : null;
     if (!user) { window.location.href = 'index.html'; return null; }
     if (user.banned) { window.location.href = 'index.html'; return null; }

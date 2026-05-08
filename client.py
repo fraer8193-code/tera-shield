@@ -10,7 +10,7 @@ import json
 import os
 import sys
 
-SERVER_URL = 'https://tera-shield.fraer8193.workers.dev'
+SERVER_URL = 'https://your-domain.com'
 
 def get_hwid():
     parts = [
@@ -120,7 +120,7 @@ class ActivationApp:
             return
 
         try:
-            resp = requests.get(f'{SERVER_URL}/api/activate/key={key}', timeout=5)
+            resp = requests.get(f'{SERVER_URL}/api.php?action=activate/key={key}', timeout=5)
             data = resp.json()
             if not data.get('exists'):
                 self.status_label.config(text='Key not found', fg='#e74c3c')
@@ -147,7 +147,7 @@ class ActivationApp:
 
         try:
             resp = requests.post(
-                f'{SERVER_URL}/api/activate',
+                f'{SERVER_URL}/api.php?action=connect',
                 json={'key': key, 'hwid': hwid},
                 timeout=10
             )

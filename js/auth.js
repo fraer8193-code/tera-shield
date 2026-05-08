@@ -1,9 +1,9 @@
-const API_URL = (window.API_BASE || '') + '/api';
+const API_URL = (window.API_BASE || '') + '/api.php';
 
 const Auth = {
     async api(method, endpoint, body) {
         try {
-            const resp = await fetch(`${API_URL}${endpoint}`, {
+            const resp = await fetch(`${API_URL}?action=${endpoint}`, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
                 body: body ? JSON.stringify(body) : undefined
@@ -56,11 +56,11 @@ const Auth = {
     },
 
     async register(username, password, referralCode) {
-        return await this.api('POST', '/register', { username, password, referralCode });
+        return await this.api('POST', 'register', { username, password, referralCode });
     },
 
     async login(username, password) {
-        return await this.api('POST', '/login', { username, password });
+        return await this.api('POST', 'login', { username, password });
     },
 
     setSession(user) { sessionStorage.setItem('current_user', JSON.stringify(user)); },
