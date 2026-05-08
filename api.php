@@ -153,7 +153,7 @@ if ($action === 'db' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     foreach ($users as &$u) { unset($u['password_hash']); }
     unset($u);
 
-    $keys = $pdo->query("SELECT * FROM keys")->fetchAll();
+    $keys = $pdo->query("SELECT * FROM tera_keys")->fetchAll();
     $refs = $pdo->query("SELECT * FROM referrals")->fetchAll();
 
     jsonResponse([
@@ -183,7 +183,7 @@ if ($action === 'referrals') {
 // ─── KEYS ───
 if ($action === 'keys') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $pdo->prepare("INSERT INTO keys (key_id, key_value, key_name, duration, max_activations, price, owner_uid, owner_username) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+        $pdo->prepare("INSERT INTO tera_keys (key_id, key_value, key_name, duration, max_activations, price, owner_uid, owner_username) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
             ->execute([
                 $body['id'] ?? generateKeyId(),
                 $body['value'] ?? generateKeyValue(),
@@ -200,7 +200,7 @@ if ($action === 'keys') {
 
 if ($action === 'keys/delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = sanitize($body['id'] ?? '');
-    $pdo->prepare("DELETE FROM keys WHERE key_id = ?")->execute([$id]);
+    $pdo->prepare("DELETE FROM tera_keys WHERE key_id = ?")->execute([$id]);
     jsonResponse(['success' => true]);
 }
 
@@ -219,7 +219,7 @@ if ($action === 'keys/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if ($sets) {
         $vals[] = $id;
-        $pdo->prepare("UPDATE keys SET " . implode(', ', $sets) . " WHERE key_id = ?")->execute($vals);
+        $pdo->prepare("UPDATE tera_keys SET " . implode(', ', $sets) . " WHERE key_id = ?")->execute($vals);
     }
     jsonResponse(['success' => true]);
 }
@@ -234,7 +234,7 @@ if ($action === 'connect' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         jsonResponse(['success' => false, 'error' => 'Missing key or hwid'], 400);
     }
 
-    $stmt = $pdo->prepare("SELECT * FROM keys WHERE key_value = ?");
+    $stmt = $pdo->prepare("SELECT * FROM tera_keys WHERE key_value = ?");
     $stmt->execute([$keyValue]);
     $key = $stmt->fetch();
 
@@ -262,7 +262,7 @@ if ($action === 'connect' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $expiresAt = date('Y-m-d H:i:s', strtotime("+{$duration} days"));
     $newActivations = (int)$key['current_activations'] + 1;
 
-    $pdo->prepare("UPDATE keys SET hwid = ?, active = 1, activated_by = ?, activated_at = NOW(), expires_at = ?, current_activations = ? WHERE key_id = ?")
+    $pdo->prepare("UPDATE tera_keys SET hwid = ?, active = 1, activated_by = ?, activated_at = NOW(), expires_at = ?, current_activations = ? WHERE key_id = ?")
         ->execute([$hwid, $username, $expiresAt, $newActivations, $key['key_id']]);
 
     jsonResponse([
@@ -279,7 +279,7 @@ if ($action === 'activate' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $hwid = sanitize($body['hwid'] ?? '');
     $username = sanitize($body['username'] ?? 'Unknown');
 
-    $stmt = $pdo->prepare("SELECT * FROM keys WHERE key_value = ?");
+    $stmt = $pdo->prepare("SELECT * FROM tera_keys WHERE key_value = ?");
     $stmt->execute([$keyValue]);
     $key = $stmt->fetch();
 
@@ -292,7 +292,7 @@ if ($action === 'activate' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $duration = (int)($key['duration'] ?: 30);
     $expiresAt = date('Y-m-d H:i:s', strtotime("+{$duration} days"));
 
-    $pdo->prepare("UPDATE keys SET hwid = ?, active = 1, activated_by = ?, activated_at = NOW(), expires_at = ?, current_activations = current_activations + 1 WHERE key_id = ?")
+    $pdo->prepare("UPDATE tera_keys SET hwid = ?, active = 1, activated_by = ?, activated_at = NOW(), expires_at = ?, current_activations = current_activations + 1 WHERE key_id = ?")
         ->execute([$hwid, $username, $expiresAt, $key['key_id']]);
 
     jsonResponse(['success' => true, 'key' => $key['key_name'], 'duration' => $duration, 'expiresAt' => $expiresAt]);
@@ -300,7 +300,7 @@ if ($action === 'activate' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if (str_starts_with($action, 'activate/key=') && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $keyValue = str_replace('activate/key=', '', $action);
-    $stmt = $pdo->prepare("SELECT * FROM keys WHERE key_value = ?");
+    $stmt = $pdo->prepare("SELECT * FROM tera_keys WHERE key_value = ?");
     $stmt->execute([$keyValue]);
     $key = $stmt->fetch();
 
@@ -332,10 +332,10 @@ if ($action === 'init' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ─── CHECK EXPIRY ───
 if ($action === 'check-expiry' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $stmt = $pdo->query("SELECT key_id FROM keys WHERE active = 1 AND expires_at IS NOT NULL AND expires_at < NOW()");
+    $stmt = $pdo->query("SELECT key_id FROM tera_keys WHERE active = 1 AND expires_at IS NOT NULL AND expires_at < NOW()");
     $expired = $stmt->fetchAll(PDO::FETCH_COLUMN);
     if ($expired) {
-        $pdo->prepare("UPDATE keys SET active = 0 WHERE expires_at < NOW() AND active = 1")->execute();
+        $pdo->query("UPDATE tera_keys SET active = 0 WHERE expires_at < NOW() AND active = 1");
     }
     jsonResponse(['expired' => $expired]);
 }

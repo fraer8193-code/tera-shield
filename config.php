@@ -1,5 +1,5 @@
 <?php
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'u123456_terashield');
-define('DB_USER', 'u123456_admin');
-define('DB_PASS', 'YOUR_PASSWORD_HERE');
+define('DB_NAME', 'f1265756_tera-sheild');
+define('DB_USER', 'f1265756_tera-sheild');
+define('DB_PASS', '1666yt6_A');
