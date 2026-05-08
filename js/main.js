@@ -30,6 +30,9 @@ loginForm.addEventListener('submit', async function(e) {
         loginMsg.className = 'msg success';
         loginMsg.textContent = 'Welcome back!';
         Auth.setSession(result.user);
+        if (result.user.token) {
+            sessionStorage.setItem('auth_token', result.user.token);
+        }
         setTimeout(() => { window.location.href = 'admin.html'; }, 600);
     } else {
         loginMsg.className = 'msg error';

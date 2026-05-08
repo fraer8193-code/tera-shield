@@ -4,15 +4,18 @@ if (typeof API_URL === 'undefined') {
 if (typeof Auth === 'undefined') {
     const Auth = {
         api(method, endpoint, body) {
+            const headers = { 'Content-Type': 'application/json' };
+            const token = sessionStorage.getItem('auth_token');
+            if (token) headers['Authorization'] = 'Bearer ' + token;
             return fetch(`${API_URL}?action=${endpoint}`, {
                 method,
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: body ? JSON.stringify(body) : undefined
             }).then(r => r.json()).catch(() => null);
         },
         getSession() { try { return JSON.parse(sessionStorage.getItem('current_user')); } catch { return null; } },
         setSession(u) { sessionStorage.setItem('current_user', JSON.stringify(u)); },
-        clearSession() { sessionStorage.removeItem('current_user'); }
+        clearSession() { sessionStorage.removeItem('current_user'); sessionStorage.removeItem('auth_token'); }
     };
 }
 
@@ -48,9 +51,12 @@ function toggleNotifications(el) {
 
 async function api(method, endpoint, body) {
     try {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = sessionStorage.getItem('auth_token');
+        if (token) headers['Authorization'] = 'Bearer ' + token;
         const resp = await fetch(`${API_URL}?action=${endpoint}`, {
             method,
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: body ? JSON.stringify(body) : undefined
         });
         return await resp.json();
@@ -61,6 +67,8 @@ async function api(method, endpoint, body) {
 }
 
 async function refreshUser() {
+    const token = sessionStorage.getItem('auth_token');
+    if (!token) { window.location.href = 'index.html'; return null; }
     const data = await api('GET', 'db');
     const user = data && data.users ? data.users.find(u => u.username === currentUser.username) : null;
     if (!user) { window.location.href = 'index.html'; return null; }

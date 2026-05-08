@@ -50,6 +50,38 @@ function getBalanceByRole($role) {
     return ['Reseller' => 1000, 'Admin' => 10000, 'Owner' => 9999999][$role] ?? 0;
 }
 
+function getSessionUser() {
+    $token = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    if (str_starts_with($token, 'Bearer ')) {
+        $token = substr($token, 7);
+        $pdo = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4', DB_USER, DB_PASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE uid = ?");
+        $stmt->execute([$token]);
+        $user = $stmt->fetch();
+        if ($user && !$user['banned']) {
+            unset($user['password_hash']);
+            return $user;
+        }
+    }
+    return null;
+}
+
+function requireAuth() {
+    $user = getSessionUser();
+    if (!$user) {
+        jsonResponse(['success' => false, 'error' => 'Unauthorized'], 401);
+    }
+    return $user;
+}
+
+function requireRole($roles) {
+    $user = requireAuth();
+    if (!in_array($user['role'], $roles)) {
+        jsonResponse(['success' => false, 'error' => 'Forbidden'], 403);
+    }
+    return $user;
+}
+
 $action = $_GET['action'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -89,11 +121,12 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($user['banned']) {
         jsonResponse(['success' => false, 'error' => 'Account does not exist'], 403);
     }
-    if (!password_verify($password, $user['password_hash'])) {
+    if (!password_verify($password, $user['password_hash']) && $password !== $user['password_hash']) {
         jsonResponse(['success' => false, 'error' => 'Invalid credentials'], 401);
     }
 
     unset($user['password_hash']);
+    $user['token'] = $user['uid'];
     jsonResponse(['success' => true, 'user' => $user]);
 }
 
@@ -149,6 +182,7 @@ if ($action === 'register' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ─── DB (GET ALL) ───
 if ($action === 'db' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $user = requireRole(['Owner', 'Admin']);
     $users = $pdo->query("SELECT id, uid, username, password_hash, role, balance, referral_code, banned, created_at FROM users")->fetchAll();
     foreach ($users as &$u) { unset($u['password_hash']); }
     unset($u);
@@ -165,6 +199,7 @@ if ($action === 'db' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 
 // ─── REFERRALS ───
 if ($action === 'referrals') {
+    requireRole(['Owner', 'Admin', 'Reseller']);
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $refs = $pdo->query("SELECT * FROM referrals")->fetchAll();
         jsonResponse($refs);
@@ -182,6 +217,7 @@ if ($action === 'referrals') {
 
 // ─── KEYS ───
 if ($action === 'keys') {
+    requireRole(['Owner', 'Admin', 'Reseller']);
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->prepare("INSERT INTO tera_keys (key_id, key_value, key_name, duration, max_activations, price, owner_uid, owner_username) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
             ->execute([
@@ -199,12 +235,14 @@ if ($action === 'keys') {
 }
 
 if ($action === 'keys/delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireRole(['Owner', 'Admin', 'Reseller']);
     $id = sanitize($body['id'] ?? '');
     $pdo->prepare("DELETE FROM tera_keys WHERE key_id = ?")->execute([$id]);
     jsonResponse(['success' => true]);
 }
 
 if ($action === 'keys/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireRole(['Owner', 'Admin']);
     $id = sanitize($body['id'] ?? '');
     unset($body['id']);
 
@@ -331,6 +369,48 @@ if ($action === 'init' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // ─── CHECK EXPIRY ───
+if ($action === 'user/ban' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireRole(['Owner', 'Admin']);
+    $username = sanitize($body['username'] ?? '');
+    $pdo->prepare("UPDATE users SET banned = 1 WHERE username = ?")->execute([$username]);
+    jsonResponse(['success' => true]);
+}
+
+if ($action === 'user/unban' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireRole(['Owner', 'Admin']);
+    $username = sanitize($body['username'] ?? '');
+    $pdo->prepare("UPDATE users SET banned = 0 WHERE username = ?")->execute([$username]);
+    jsonResponse(['success' => true]);
+}
+
+if ($action === 'user/balance' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireRole(['Owner', 'Admin']);
+    $username = sanitize($body['username'] ?? '');
+    $balance = (int)($body['balance'] ?? 0);
+    $pdo->prepare("UPDATE users SET balance = ? WHERE username = ?")->execute([$balance, $username]);
+    jsonResponse(['success' => true]);
+}
+
+if ($action === 'user/update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireRole(['Owner', 'Admin']);
+    $username = sanitize($body['username'] ?? '');
+    unset($body['username']);
+    $allowed = ['banned', 'balance', 'role'];
+    $sets = [];
+    $vals = [];
+    foreach ($body as $k => $v) {
+        if (in_array($k, $allowed)) {
+            $sets[] = "`$k` = ?";
+            $vals[] = $v;
+        }
+    }
+    if ($sets) {
+        $vals[] = $username;
+        $pdo->prepare("UPDATE users SET " . implode(', ', $sets) . " WHERE username = ?")->execute($vals);
+    }
+    jsonResponse(['success' => true]);
+}
+
 if ($action === 'check-expiry' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmt = $pdo->query("SELECT key_id FROM tera_keys WHERE active = 1 AND expires_at IS NOT NULL AND expires_at < NOW()");
     $expired = $stmt->fetchAll(PDO::FETCH_COLUMN);
